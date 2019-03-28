@@ -147,27 +147,27 @@ for image in images:
         elif (K == 4 and image == 'imagemCancun.png'):
             coresDesejadas = {
                 'mar': [138, 98, 49], # Mar
-                'mato': [63, 68, 35], # Mato
+                'floresta': [63, 68, 35], # Mato
                 'area': [115, 127, 126] # Área Construida
             }
 
             indexes = {
                 'mar': [], # Mar
-                'mato': [], # Mato
+                'floresta': [], # Mato
                 'area': [] # Área Construida
             }
 
             tamanhos = {
                 'mar': 0, # Mar
-                'mato': 0, # Mato
+                'floresta': 0, # Mato
                 'area': 0 # Área Construida
             }
 
             agrupamentoDetalhes(center, label, tamanhos, indexes, coresDesejadas)
 
-            mostraDetalhe('area', indexes, center, label, orig)
             mostraDetalhe('mar', indexes, center, label, orig)
-            mostraDetalhe('mato', indexes, center, label, orig)
+            mostraDetalhe('floresta', indexes, center, label, orig)
+            mostraDetalhe('area', indexes, center, label, orig)
             waitAndClose()
 
             # Imprime os tamanhos de cada área em metros quadrados.
