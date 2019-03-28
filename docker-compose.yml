@@ -1,0 +1,12 @@
+version: '2'
+
+services:
+  pdi:
+    image: gfviegas/pdi:latest
+    working_dir: /code
+    container_name: pdi-container
+    command: "bash"
+    volumes:
+      - ./:/code
+    environment:
+      - DISPLAY=${DISPLAY_X}
