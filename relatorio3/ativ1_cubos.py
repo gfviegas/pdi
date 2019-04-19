@@ -1,6 +1,42 @@
+# Relatório 3 - PDI
+# Bruno Marra - 3029
+# Gustavo Viegas - 3026
+# Heitor Passeado - 3055
+#
+# Descrição da Atividade:
+#
+# 1) Para cada imagem de cubo(10 imagens), extraia 5 valores de R,G,B,L,a,b,
+# extraia e calcule a media e desvio padrão para ver a variação da matiz de cor
+# em cada agrupamento. Faça isto para duas cores distintas do cubo.
+# Ao final desta operação, voce vai ter , para uma cor, um total de 50 pixels
+# amostrados. Calcule novamente a media e desvio padrao desta amostra, para
+# verificar se ocorreu muita variação de cor. Analise principalemnte os valores
+# de L,a,b. Lembre-se de fazer isto para duas cores do cubo. Utilize a lib numpy
+# ou uma planilha eletronica para visualizar os resultados.
+#
+# 2) Abra arquivo caneta.jpg e escolha 12 pixels amostrados da cor azul, tomando
+# cuidado para se extrairem pixels das pontas e meio da imagem. Ache os valores
+# maximos e minimos para os pixels, e usando o script reconhecimentoHSV,
+# apresente a segmentação obtida nas 4 imagens de caneta, e analise o resultado.
+#
+# 3) Da mesma forma que realizado no item 2, realize o mesmo procedimento para
+# o filme videocaneta, realizando a segmentação para as 4 cores presentes,
+# obtendo 4 filmes resultantes. Estes filmes devem ser obtidos aplicando a
+# mascara de segmentação obtida, exiba o filme apresentando somente a ponta da
+# caneta segmentada se movendo...
+#
+# 4) Da mesma forma que no item 4, gere imagens do arquivo RUN.AVI, selecione
+# somente amostras de pixels dos corredores que usam camisa azul escura, e faça
+# o procedimento de segmentação para exibir somente estes corredores.
+#
+# Este arquivo se refere a atividade 1).
+
+# Carregando as bibliotecas necessárias
 import cv2,argparse,glob
 import numpy as np
 
+# Calcula estatísticas de média e desvio padrao de cada banda (BGR, LAB)
+# pra uma amostra dada.
 def calculaStats(amostra):
     amostraSqueezed = np.squeeze(amostra)
     amostraBGR = [a[0] for a in amostra]
@@ -38,13 +74,11 @@ def calculaStats(amostra):
     print("Media: {}, Desvio: {}".format(np.mean(B), np.std(B)))
     print('')
 
-
-# mouse callback function
+# Função de callback do mouse
 def showPixelValue(event,x,y,flags,param):
     global img, combinedResult, placeholder, amostra
     if event == cv2.EVENT_LBUTTONDOWN:
         bgr = img[y,x]
-        ycb = cv2.cvtColor(np.uint8([[bgr]]),cv2.COLOR_BGR2YCrCb)[0][0]
         lab = cv2.cvtColor(np.uint8([[bgr]]),cv2.COLOR_BGR2Lab)[0][0]
         hsv = cv2.cvtColor(np.uint8([[bgr]]),cv2.COLOR_BGR2HSV)[0][0]
 
@@ -54,33 +88,28 @@ def showPixelValue(event,x,y,flags,param):
             amostraTotal.append([bgr, lab])
 
     if event == cv2.EVENT_MOUSEMOVE:
-        # get the value of pixel from the location of mouse in (x,y)
         bgr = img[y,x]
 
-
-        # Convert the BGR pixel into other colro formats
-        ycb = cv2.cvtColor(np.uint8([[bgr]]),cv2.COLOR_BGR2YCrCb)[0][0]
         lab = cv2.cvtColor(np.uint8([[bgr]]),cv2.COLOR_BGR2Lab)[0][0]
         hsv = cv2.cvtColor(np.uint8([[bgr]]),cv2.COLOR_BGR2HSV)[0][0]
 
-        # Create an empty placeholder for displaying the values
+        # Cria um placeholder vazio pra mostrar outros formatos de cores
         placeholder = np.zeros((img.shape[0],400,3),dtype=np.uint8)
 
-        # fill the placeholder with the values of color spaces
-        cv2.putText(placeholder, "BGR {}".format(bgr), (20, 70), cv2.FONT_HERSHEY_COMPLEX, .9, (255,255,255), 1, cv2.LINE_AA)
-        cv2.putText(placeholder, "HSV {}".format(hsv), (20, 140), cv2.FONT_HERSHEY_COMPLEX, .9, (255,255,255), 1, cv2.LINE_AA)
-        cv2.putText(placeholder, "YCrCb {}".format(ycb), (20, 210), cv2.FONT_HERSHEY_COMPLEX, .9, (255,255,255), 1, cv2.LINE_AA)
-        cv2.putText(placeholder, "LAB {}".format(lab), (20, 280), cv2.FONT_HERSHEY_COMPLEX, .9, (255,255,255), 1, cv2.LINE_AA)
+        # Preenche o placeholder
+        cv2.putText(placeholder, "BGR {}".format(bgr), (20, 70),
+                    cv2.FONT_HERSHEY_COMPLEX, .9, (255,255,255), 1, cv2.LINE_AA)
+        cv2.putText(placeholder, "HSV {}".format(hsv), (20, 140),
+                    cv2.FONT_HERSHEY_COMPLEX, .9, (255,255,255), 1, cv2.LINE_AA)
+        cv2.putText(placeholder, "LAB {}".format(lab), (20, 280),
+                    cv2.FONT_HERSHEY_COMPLEX, .9, (255,255,255), 1, cv2.LINE_AA)
 
-        # Combine the two results to show side by side in a single image
+        # Combina os resultados e os mostra
         combinedResult = np.hstack([img,placeholder])
-
         cv2.imshow(msg, combinedResult)
 
 
 if __name__ == '__main__' :
-
-    # load the image and setup the mouse callback function
     global img, msg, amostraImgAtual, amostraTotal
     amostraImgAtual = list()
     amostraTotal = list()
@@ -92,37 +121,33 @@ if __name__ == '__main__' :
     msg = "Pressione  A para Anterior, P para proxima imagem, X pra computar"
     cv2.imshow(msg, img)
 
-    # Create an empty window
     cv2.namedWindow(msg)
-    # Create a callback function for any event on the mouse
     cv2.setMouseCallback(msg, showPixelValue)
+
     i = 0
     while(1):
         k = cv2.waitKey(1) & 0xFF
-        # check next image in the folder
         if k == ord('p'):
             i += 1
-            print("Stats da imagem {} que possui {} amostras".format(i, len(amostraImgAtual)))
+            print("Stats da imagem {} que possui {} amostras"
+                  .format(i, len(amostraImgAtual)))
             calculaStats(amostraImgAtual)
             amostraImgAtual = list()
             img = cv2.imread(files[i%len(files)])
             img = cv2.resize(img,(400,400))
             cv2.imshow(msg, img)
-
-        # check previous image in folder
         elif k == ord('a'):
             i -= 1
-            print("Stats da imagem {} que possui {} amostras".format(i, len(amostraImgAtual)))
+            print("Stats da imagem {} que possui {} amostras"
+                  .format(i, len(amostraImgAtual)))
             calculaStats(amostraImgAtual)
             amostraImgAtual = list()
             img = cv2.imread(files[i%len(files)])
             img = cv2.resize(img,(400,400))
             cv2.imshow(msg, img)
-
-        elif k == ord('x'):
+        elif k == ord('x'): # Ao apertar X, mostra estatísticas total das amostras coletadas
             print("Stats do total da amostra de {} cores.".format(len(amostraTotal)))
             calculaStats(amostraTotal)
-
         elif k == 27:
             cv2.destroyAllWindows()
             break

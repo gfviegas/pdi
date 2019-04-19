@@ -29,62 +29,57 @@
 # somente amostras de pixels dos corredores que usam camisa azul escura, e faça
 # o procedimento de segmentação para exibir somente estes corredores.
 #
-# Este arquivo se refere a atividade 4).
+# Este arquivo se refere a atividade 2).
 
 # Carregando as bibliotecas necessárias
 import cv2
 import numpy as np
 
-# Define range de cor azul em HSV.
-# Estes valores de pixels normalmente são amostrados de imagens
-# conhecidas e utilizados para segmentar imagens novas.
-def segmentaImagem(img):
-    hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
+img = cv2.imread("images/caneta.jpg")
+# Como a foto foi tirada do celular, vamos alterar o tamanho da imagem
+print('Dimensões Originais: {}'.format(img.shape))
 
-    # Intervalo de cores azul
-    lower_HSV = np.array([100, 130, 20])
-    upper_HSV = np.array([140, 255, 255])
+scale_percent = 20
+width = int(img.shape[1] * scale_percent / 100)
+height = int(img.shape[0] * scale_percent / 100)
+dim = (width, height)
 
-    # Aplica máscara HSV pra pegar apenas as cores azuis nesse intervalo
-    maskHSV = cv2.inRange(hsv, lower_HSV, upper_HSV)
-    # Bitwise-AND mask and original image
-    return cv2.bitwise_and(img, img, mask=maskHSV)
+# Resize da imagem
+resized = cv2.resize(img, dim, interpolation=cv2.INTER_AREA)
+print('Dimensões após redução de escala: {}'.format(resized.shape))
 
+cv2.imshow("Imagem Reduzida", resized)
+cv2.waitKey(0)
+cv2.destroyAllWindows()
 
-# Abre um vídeo gravado em disco
-video = cv2.VideoCapture('run.mp4')
-outputFile = 'resultados/saidaAtiv4.avi'
-(sucesso, frame) = video.read()
+img = resized.copy()
+hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
 
-# Criando stream de output pro video de resultado
-fourcc = cv2.VideoWriter_fourcc('M', 'J', 'P', 'G')
-outputVideo = cv2.VideoWriter(outputFile, fourcc, 60, (frame.shape[1],
-                                                      frame.shape[0]))
+# Valores HSV encontrados
+# [[117, 219, 49], [117, 206, 42], [117, 210, 40], [116, 205, 41],
+# [117, 210, 34], [118, 191, 36], [114, 222, 31], [116, 226, 35],
+# [118, 204, 30], [116, 205, 36], [118, 199, 32], [117, 210, 40]]
 
-# numero = 1
-while True:
-    # read() retorna 1-Se houve sucesso e 2-O próprio frame
-    (sucesso, frame) = video.read()
-    if not sucesso:  # final do vídeo
-        break
+# Intervalo HSV
+lower_blue_HSV = np.array([110, 150, 20])
+upper_blue_HSV = np.array([130, 255, 255])
 
-    cv2.imshow("Original", frame)
-    frame = segmentaImagem(frame)
+# Intervalo BGR
+lower_blue_BGR = np.array([30, 8, 6])
+upper_blue_BGR = np.array([49, 11, 7])
 
-    # Grava um frame como imagem
-    # cv2.imwrite('resultados/ativ4_video{}.png'.format(numero), frame)
-    # numero += 1
+# Máscara pra pegar apenas valores em azul
+maskHSV = cv2.inRange(hsv, lower_blue_HSV, upper_blue_HSV)
+maskBGR = cv2.inRange(img, lower_blue_BGR, upper_blue_BGR)
 
-    outputVideo.write(frame)
-    cv2.imshow("Exibindo video", frame)
-
-    # Converte para LAB e vai gravando  video em disco
-    # lab = cv2.cvtColor(frame, cv2.COLOR_RGB2Lab)
-    # outputVideo.write((lab).astype(np.uint8))
-
-    if cv2.waitKey(1) & 0xFF == ord("s"):
-        break
-
-outputVideo.release()
-video.release()
+# Bitwise AND para mostrar apenas cores azuis na imagem
+resHSV = cv2.bitwise_and(img, img, mask=maskHSV)
+resRGB = cv2.bitwise_and(img, img, mask=maskBGR)
+cv2.imshow('Imagem Original', img)
+cv2.imshow('Imagem HSV', hsv)
+cv2.imshow('Mascara com HSV', maskHSV)
+cv2.imshow('Resultado com HSV', resHSV)
+cv2.imshow('Mascara com RGB', maskBGR)
+cv2.imshow('Resultado com RGB', resRGB)
+cv2.waitKey(0)
 cv2.destroyAllWindows()
