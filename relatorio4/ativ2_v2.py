@@ -29,6 +29,11 @@ from sklearn.neural_network import MLPClassifier
 from sklearn.metrics import (classification_report, confusion_matrix,
                              accuracy_score)
 
+# Desligando warnings
+from sklearn.exceptions import DataConversionWarning
+import warnings
+warnings.filterwarnings(action='ignore', category=DataConversionWarning)
+
 # URL do dataset - Floresta (ver referência)
 # O arquivo train.csv tem a classificação de Cover Type, o test.csv não.
 url = 'forest/train.csv'
