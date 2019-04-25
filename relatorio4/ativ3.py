@@ -37,9 +37,9 @@ warnings.filterwarnings(action='ignore', category=DataConversionWarning)
 
 ### CONSTANTES
 # % dos dados vão pra testes, o restante pra treinamento
-TEST_SIZE = 0.225
+TEST_SIZE = 0.05
 # Número máximo de iterações
-MAX_ITER = 1500
+MAX_ITER = 5000
 ###
 
 # Nome das colunas pro dataset
@@ -69,7 +69,7 @@ X_train = scaler.transform(X_train)
 X_test = scaler.transform(X_test)
 
 # Classificador
-mlp = MLPClassifier(hidden_layer_sizes=(3), max_iter=MAX_ITER)
+mlp = MLPClassifier(hidden_layer_sizes=(6), max_iter=MAX_ITER)
 mlp.fit(X_train, y_train.values.ravel())
 
 predictions = mlp.predict(X_test)
@@ -105,7 +105,9 @@ while True:
     (sucesso, frame) = video.read()
     if not sucesso:  # Final do vídeo
         break
-
+    # if numero == 242:
+    #     cv2.imshow('Image', frame)
+    #     cv2.waitKey()
     frame = segmentaImagem(frame)
 
     # Grava um frame como imagem
@@ -114,7 +116,6 @@ while True:
     numero += 1
 
     outputVideo.write(frame)
-    cv2.imshow('Exibindo video', frame)
     if cv2.waitKey(1) & 0xFF == ord("s"):
         break
 
