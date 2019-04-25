@@ -131,6 +131,10 @@ class NeuralForest(object):
 # network.evaluate(verbose=True)
 #
 # Uma saida do algoritmo genético mais eficiente...
-network = NeuralForest(0.2392683376355929, 1294, (14, 24, 37, 26, 28, 37, 13,
-                                                  39))
+# network = NeuralForest(0.2392683376355929, 1294, (14, 24, 37, 26, 28, 37, 13,
+#                                                   39))
+# network.evaluate(verbose=True)
+
+# 85% +/-
+network = NeuralForest(0.11584732987929544, 1679, (35, 44, 25, 22, 47, 47, 12))
 network.evaluate(verbose=True)

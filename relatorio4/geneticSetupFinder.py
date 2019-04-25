@@ -14,7 +14,7 @@ from deap import tools
 from deap import gp
 
 # Taxas e Constantes
-TOURNSIZE = 3
+TOURNSIZE = 4
 EXP_MIN, EXP_MAX = (1, 8)
 MUT_MIN, MUT_MAX = (0, 4)
 
@@ -47,12 +47,12 @@ def evalSetup(individual):
 toolbox.register("evaluate", evalSetup)
 toolbox.register("select", tools.selTournament, tournsize=TOURNSIZE)
 toolbox.register("mate", gp.cxOnePoint)
-toolbox.register("mutate", tools.mutFlipBit, indpb=0.05)
+toolbox.register("mutate", tools.mutFlipBit, indpb=0)
 
 def main():
     random.seed(time.time())
     genN = 2
-    popN = 5
+    popN = 10
 
     pop = toolbox.population(n=popN)
     hof = tools.HallOfFame(1)
