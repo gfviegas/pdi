@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # Relatório 2 - PDI
 # Bruno Marra - 3029
 # Gustavo Viegas - 3026

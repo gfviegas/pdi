@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # Relatório 1 - PDI
 # Bruno Marra - 3029
 # Gustavo Viegas - 3026
@@ -19,7 +20,9 @@
 # Carregando as bibliotecas necessárias
 import numpy as np
 import cv2
-from matplotlib import pyplot as plt
+import matplotlib
+matplotlib.use("agg")
+import matplotlib.pyplot as plt
 from sys import maxsize
 
 # Tamanho em metros de cada pixel

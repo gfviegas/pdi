@@ -1,6 +1,14 @@
+# -*- coding: utf-8 -*-
 import cv2
 
 import numpy as np
+
+def treatImage(frame):
+    #frame = cv2.resize(frame, (120, 120))
+    frame = cv2.GaussianBlur(frame, (5,5), 0)
+    otsu = cv2.THRESH_BINARY + cv2.THRESH_OTSU
+    ret,frame = cv2.threshold(frame, 0, 255, otsu)
+    return frame
 
 def writeLetter(letter):
     font = cv2.FONT_HERSHEY_SIMPLEX
@@ -26,8 +34,8 @@ while(1):
     if framecount == (framerate * 5):
         framecount = 0
         writeLetter("B")
+        frame = treatImage(frame)
         cv2.imshow("Imagem capturada", frame)
-
       # TODO
       # mandar o frame para a função de avaliação
 

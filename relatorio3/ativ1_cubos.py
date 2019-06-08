@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # Relatório 3 - PDI
 # Bruno Marra - 3029
 # Gustavo Viegas - 3026
@@ -114,9 +115,9 @@ if __name__ == '__main__' :
     amostraImgAtual = list()
     amostraTotal = list()
 
-    files = glob.glob('images/rub*.jpg')
-    files.sort()
-    img = cv2.imread(files[0])
+    #files = glob.glob('images/rub*.jpg')
+    #files.sort()
+    img = cv2.imread("MOEDA_VALIOSA.jpg")
     img = cv2.resize(img,(400,400))
     msg = "Pressione  A para Anterior, P para proxima imagem, X pra computar"
     cv2.imshow(msg, img)
