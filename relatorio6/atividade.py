@@ -84,9 +84,17 @@ def trainClassifier():
 
     for letter in ascii_lowercase:
         for i in range(10):
+            # Abre a imagem
             imgPath = 'alphabet/{}{}.jpg'.format(letter, i)
-            data = [] # Chamar o método que retorna os momentos
+            img = cv2.imread(imgPath)
+
+            # Extrai os dados do momento
+            data = treatImage(img)
+
+            # Aplica a PCA
             applyPCA(data)
+
+            # Insere no dataframe
             data.insert(0, letter)
             df.append([data])
 
