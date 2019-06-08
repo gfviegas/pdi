@@ -11,7 +11,7 @@ import matplotlib.pyplot as plt
 from classifier import LetterClassifier
 
 # Iniciando Classificador
-LC = LetterClassifier(type='mlp')
+LC = LetterClassifier(type='svm')
 
 pca = PCA(n_components=0.9)
 
@@ -27,7 +27,7 @@ def writeLetter(letter):
     return
 
 def treatImage(frame):
-    frame = cv2.resize(frame, (480, 480))
+    frame = cv2.resize(frame, (240, 240))
 
     # aplica filtro gaussiano e coloca imagem preto e branco
     img_grey = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
@@ -38,7 +38,7 @@ def treatImage(frame):
 
     #tira o contorno da imagem
     contours, heirarchy = cv2.findContours(img_grey, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
-    borderImg = np.zeros((480, 480, 3), np.uint8)
+    borderImg = np.zeros((240, 240, 3), np.uint8)
     cv2.drawContours(borderImg, contours, -1, (125, 125, 0), 1)
     borderGrey = cv2.cvtColor(borderImg, cv2.COLOR_BGR2GRAY)
 
@@ -49,7 +49,7 @@ def treatImage(frame):
     huMoments = cv2.HuMoments(moment)
 
     # Calcula momento de Zernike
-    zeMoments = zernike_moments(borderGrey, radius=40)
+    zeMoments = zernike_moments(borderGrey, radius=20)
 
     # cv2.imshow("Imagem capturada", img_grey)
     # cv2.waitKey(0)

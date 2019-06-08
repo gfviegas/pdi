@@ -44,4 +44,4 @@ alphabet = {
 for letter in alphabet:
     for i in range(len(alphabet[letter])):
         img = alphabet[letter][i]
-        resizeImg(img, letter, i, width=480, height=480)
+        resizeImg(img, letter, i, width=240, height=240)
