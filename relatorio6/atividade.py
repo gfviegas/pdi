@@ -11,7 +11,6 @@ def writeLetter(letter):
 
     cv2.rectangle(frame, box_coords[0], box_coords[1], (0,0,0), cv2.FILLED)
     cv2.putText(frame, letter, (text_offset_x, text_offset_y), font, 6, (255,255,255), 3)
-    cv2.imshow("Imagem capturada", frame)
     return
 
 cap = cv2.VideoCapture(0)
@@ -26,7 +25,8 @@ while(1):
     # Check if this is the frame closest to 5 seconds
     if framecount == (framerate * 5):
         framecount = 0
-        writeLetter("A")
+        writeLetter("B")
+        cv2.imshow("Imagem capturada", frame)
 
       # TODO
       # mandar o frame para a função de avaliação
