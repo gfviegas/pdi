@@ -1,7 +1,11 @@
 # -*- coding: utf-8 -*-
 import cv2
-
 import numpy as np
+import pandas as pd
+from sklearn.decomposition import PCA
+from string import ascii_lowercase
+
+from .classifier import LetterClassifier
 
 def writeLetter(letter):
     font = cv2.FONT_HERSHEY_SIMPLEX
@@ -26,7 +30,7 @@ def treatImage(frame):
 
     #tira o contorno da imagem
     contours, heirarchy = cv2.findContours(img_grey, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
-    borderImg =  np.zeros((480,640,3), np.uint8)
+    borderImg = np.zeros((480,640,3), np.uint8)
     cv2.drawContours(borderImg,contours,-1,(125,125,0),1)
     borderGrey = cv2.cvtColor(borderImg, cv2.COLOR_BGR2GRAY)
 
@@ -39,29 +43,65 @@ def treatImage(frame):
     cv2.imshow("Imagem capturada", borderImg)
     return huMoments
 
-cap = cv2.VideoCapture(0)
-framerate = cap.get(cv2.CAP_PROP_FPS)
-framecount = 0
+def videoLive():
+    cap = cv2.VideoCapture(0)
+    framerate = cap.get(cv2.CAP_PROP_FPS)
+    framecount = 0
 
-while(1):
-    ret, frame=cap.read()
-    frame = cv2.flip(frame, 1)
-    framecount += 1
+    while(1):
+        ret, frame=cap.read()
+        frame = cv2.flip(frame, 1)
+        framecount += 1
 
-    # Check if this is the frame closest to 5 seconds
-    if framecount == (framerate * 5):
-        framecount = 0
-        writeLetter("B")
+        # Check if this is the frame closest to 5 seconds
+        if framecount == (framerate * 5):
+            framecount = 0
+            writeLetter('B')
 
-    treatImage(frame)
-        #cv2.imshow("Imagem capturada", frame)
+        treatImage(frame)
+            #cv2.imshow('Imagem capturada', frame)
 
-      # TODO
-      # mandar o frame para a função de avaliação
+          # TODO
+          # mandar o frame para a função de avaliação
 
-    k = cv2.waitKey(5) & 0xFF
-    if k == 27:
-        break;
+        k = cv2.waitKey(5) & 0xFF
+        if k == 27:
+            break
 
-cap.release()
-cv2.destroyAllWindows()
+    cap.release()
+    cv2.destroyAllWindows()
+
+# Iniciando Classificador
+LC = LetterClassifier()
+
+def applyPCA(data):
+    pca = PCA(n_components=0.90, svd_solver='full')
+    pca.fit_transform(data)
+
+def trainClassifier():
+    # df = pd.DataFrame([[]], columns=['n sei', 'nsei', 'letter'])
+    df = pd.DataFrame()
+
+    for letter in ascii_lowercase:
+        for i in range(10):
+            imgPath = 'alphabet/{}{}.jpg'.format(letter, i)
+            data = [] # Chamar o método que retorna os momentos
+            applyPCA(data)
+            data.insert(0, letter)
+            df.append([data])
+
+
+    # A primeira coluna será chamada de letter já q inserimos a letter nela
+    df.rename(columns={ df.columns[0]: 'letter' })
+
+    # Dados pra treinamento
+    x = df.drop('letter', axis=1)
+    y = df['letter']
+
+    # Treina o classificador
+    LC.train(x, y)
+
+
+if __name__ == '__main__':
+    trainClassifier()
+    videoLive()
