@@ -70,17 +70,19 @@ def videoLive():
 LC = LetterClassifier()
 
 def applyPCA(data):
-    print('PRE-PCA: ', len(data), len(data[0]))
+    # print('PRE-PCA: ', len(data), len(data[0]))
     pca = PCA(n_components=0.9)
     data = pca.fit_transform(data)
-    print('POS-PCA: ', len(data), len(data[0]))
+    # print('POS-PCA: ', len(data), len(data[0]))
     # print('Variancia: ', pca.explained_variance_)
     # print('Variancia: ', pca.explained_variance_ratio_)
+    # print('Componentes: ', pca.components_)
     return data
 
 def trainClassifier():
     # df = pd.DataFrame([[]], columns=['n sei', 'nsei', 'letter'])
     dfData = list()
+    nComp = 0
 
     for letter in ascii_lowercase:
         print(letter)
@@ -96,35 +98,42 @@ def trainClassifier():
             letterData.append(data)
 
         # Aplica a PCA
-        data = applyPCA(letterData).ravel().tolist()
+        data = applyPCA(letterData).tolist()
+        for entry in data:
+            nComp = max(nComp, len(entry))
 
-        # Insere no dataframe
-        data.insert(0, letter)
-        dfData.append(data)
+            # Insere no dataframe
+            entry.insert(0, letter)
+            dfData.append(entry)
 
-    columns = ['img{}'.format(i) for i in range(10)]
+
+    columns = ['c{}'.format(i) for i in range(nComp)]
     columns.insert(0, 'letter')
     df = pd.DataFrame(dfData, columns=columns)
 
     print(df.info())
+    print(df.head(2))
 
     # Dados pra treinamento
     x = df.drop('letter', axis=1)
     y = df['letter']
 
     # Treina o classificador
-    LC.train(x, y, len(x.columns))
+    LC.train(x, y, nComp)
 
 def predictLetter(img):
-    data = treatImage(img).reshape(-1, 1)
-    print(LC.n, data)
-    pca = PCA(LC.n)
-    data = pca.fit_transform(data)
+    # data = list()
+    # data.append(treatImage(img).ravel().tolist())
+    # pca = PCA(LC.n)
+    # data = pca.fit_transform(data).tolist()
 
-    return LC.predict(img)
+    data = treatImage(img).ravel().reshape(-1, 1)
+    print(data[:1])
+    return LC.predict(data[:1])
 
 if __name__ == '__main__':
     trainClassifier()
 
     print(predictLetter(cv2.imread('alphabet/a0.jpg')))
+    print(predictLetter(cv2.imread('alphabet/z9.jpg')))
     # videoLive()
