@@ -14,6 +14,7 @@ while(1):
     # Check if this is the frame closest to 5 seconds
     if framecount == (framerate * 5):
         framecount = 0
+        cv2.putText(frame, "A", (10,300), font, 1.5,(63,63,63),2)
         cv2.imshow("Imagem capturada", frame)
 
       # TODO
