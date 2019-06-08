@@ -1,6 +1,7 @@
 # Estratégia: usar KNN. Se tiver mt lento, usar SVM.
 from sklearn import svm
 from sklearn.neighbors import KNeighborsClassifier
+from sklearn.neural_network import MLPClassifier
 
 class LetterClassifier(object):
     trained = False
@@ -10,6 +11,8 @@ class LetterClassifier(object):
 
         if (type == 'knn'):
             self.classifier = KNeighborsClassifier()
+        elif (type == 'mlp'):
+            self.classifier = MLPClassifier(hidden_layer_sizes=(3, 2, 4))
         else:
             self.classifier = svm.SVC(kernel='linear', probability=True)
 

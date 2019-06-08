@@ -47,16 +47,25 @@ def videoLive():
     framerate = cap.get(cv2.CAP_PROP_FPS)
     framecount = 0
 
+    frameData = list()
+
     while(1):
         ret, frame=cap.read()
         frame = cv2.flip(frame, 1)
         framecount += 1
 
-        # Check if this is the frame closest to 5 seconds
-        if framecount == (framerate * 5):
-            framecount = 0
-            letter = predictLetter(frame)
+        if (len(frameData) < 5):
+            frameData.append(frame)
+        else:
+            letter = predictLetter(frameData)
             writeLetter(letter)
+            frameData = list()
+
+        # Check if this is the frame closest to 5 seconds
+        # if framecount == (framerate * 5):
+        #     framecount = 0
+        #     letter = predictLetter(frame)
+        #     writeLetter(letter)
 
         cv2.imshow('Imagem capturada', frame)
         k = cv2.waitKey(5) & 0xFF
@@ -67,7 +76,7 @@ def videoLive():
     cv2.destroyAllWindows()
 
 # Iniciando Classificador
-LC = LetterClassifier()
+LC = LetterClassifier(type='mlp')
 
 def applyPCA(data):
     # print('PRE-PCA: ', len(data), len(data[0]))
@@ -85,7 +94,6 @@ def trainClassifier():
     nComp = 0
 
     for letter in ascii_lowercase:
-        print(letter)
         letterData = []
 
         for i in range(10):
@@ -121,19 +129,32 @@ def trainClassifier():
     # Treina o classificador
     LC.train(x, y, nComp)
 
-def predictLetter(img):
+def predictLetter(frameList):
     # data = list()
     # data.append(treatImage(img).ravel().tolist())
     # pca = PCA(LC.n)
     # data = pca.fit_transform(data).tolist()
 
-    data = treatImage(img).ravel().reshape(-1, 1)
-    print(data[:1])
-    return LC.predict(data[:1])
+    frameData = list()
+    for frame in frameList:
+        data = treatImage(frame).ravel()
+        frameData.append(data)
+
+
+    data = applyPCA(frameData).tolist()
+    df = pd.DataFrame(data)
+
+    predictions = LC.predict(df)
+    print(predictions)
+
+    # data = treatImage(img).ravel().reshape(-1, 1)
+    # print(data[:1])
+    # return LC.predict(data[:1])
 
 if __name__ == '__main__':
     trainClassifier()
 
-    print(predictLetter(cv2.imread('alphabet/a0.jpg')))
-    print(predictLetter(cv2.imread('alphabet/z9.jpg')))
+    print(predictLetter([cv2.imread('alphabet/g{}.jpg'.format(i)) for i in range(6) ]))
+    print(predictLetter([cv2.imread('alphabet/a{}.jpg'.format(i)) for i in range(6) ]))
+    print(predictLetter([cv2.imread('alphabet/w{}.jpg'.format(i)) for i in range(6) ]))
     # videoLive()
