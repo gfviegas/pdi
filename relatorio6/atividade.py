@@ -5,7 +5,7 @@ import pandas as pd
 from sklearn.decomposition import PCA
 from string import ascii_lowercase
 
-from .classifier import LetterClassifier
+from classifier import LetterClassifier
 
 def writeLetter(letter):
     font = cv2.FONT_HERSHEY_SIMPLEX
@@ -39,7 +39,6 @@ def treatImage(frame):
 
     # Calculate Hu Moments
     huMoments = cv2.HuMoments(moment)
-    print(huMoments)
     cv2.imshow("Imagem capturada", borderImg)
     return huMoments
 
@@ -56,14 +55,10 @@ def videoLive():
         # Check if this is the frame closest to 5 seconds
         if framecount == (framerate * 5):
             framecount = 0
-            writeLetter('B')
+            letter = predictLetter(frame)
+            writeLetter(letter)
 
-        treatImage(frame)
-            #cv2.imshow('Imagem capturada', frame)
-
-          # TODO
-          # mandar o frame para a função de avaliação
-
+        cv2.imshow('Imagem capturada', frame)
         k = cv2.waitKey(5) & 0xFF
         if k == 27:
             break
@@ -75,41 +70,61 @@ def videoLive():
 LC = LetterClassifier()
 
 def applyPCA(data):
-    pca = PCA(n_components=0.90, svd_solver='full')
-    pca.fit_transform(data)
+    print('PRE-PCA: ', len(data), len(data[0]))
+    pca = PCA(n_components=0.9)
+    data = pca.fit_transform(data)
+    print('POS-PCA: ', len(data), len(data[0]))
+    # print('Variancia: ', pca.explained_variance_)
+    # print('Variancia: ', pca.explained_variance_ratio_)
+    return data
 
 def trainClassifier():
     # df = pd.DataFrame([[]], columns=['n sei', 'nsei', 'letter'])
-    df = pd.DataFrame()
+    dfData = list()
 
     for letter in ascii_lowercase:
+        print(letter)
+        letterData = []
+
         for i in range(10):
             # Abre a imagem
             imgPath = 'alphabet/{}{}.jpg'.format(letter, i)
             img = cv2.imread(imgPath)
 
             # Extrai os dados do momento
-            data = treatImage(img)
+            data = treatImage(img).ravel()
+            letterData.append(data)
 
-            # Aplica a PCA
-            applyPCA(data)
+        # Aplica a PCA
+        data = applyPCA(letterData).ravel().tolist()
 
-            # Insere no dataframe
-            data.insert(0, letter)
-            df.append([data])
+        # Insere no dataframe
+        data.insert(0, letter)
+        dfData.append(data)
 
+    columns = ['img{}'.format(i) for i in range(10)]
+    columns.insert(0, 'letter')
+    df = pd.DataFrame(dfData, columns=columns)
 
-    # A primeira coluna será chamada de letter já q inserimos a letter nela
-    df.rename(columns={ df.columns[0]: 'letter' })
+    print(df.info())
 
     # Dados pra treinamento
     x = df.drop('letter', axis=1)
     y = df['letter']
 
     # Treina o classificador
-    LC.train(x, y)
+    LC.train(x, y, len(x.columns))
 
+def predictLetter(img):
+    data = treatImage(img).reshape(-1, 1)
+    print(LC.n, data)
+    pca = PCA(LC.n)
+    data = pca.fit_transform(data)
+
+    return LC.predict(img)
 
 if __name__ == '__main__':
     trainClassifier()
-    videoLive()
+
+    print(predictLetter(cv2.imread('alphabet/a0.jpg')))
+    # videoLive()

@@ -13,7 +13,8 @@ class LetterClassifier(object):
         else:
             self.classifier = svm.SVC(kernel='linear', probability=True)
 
-    def train(self, x, y):
+    def train(self, x, y, nColumns):
+        self.n = nColumns
         self.classifier.fit(x, y)
         self.trained = True
 
