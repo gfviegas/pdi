@@ -3,13 +3,6 @@ import cv2
 
 import numpy as np
 
-def treatImage(frame):
-    #frame = cv2.resize(frame, (120, 120))
-    frame = cv2.GaussianBlur(frame, (5,5), 0)
-    otsu = cv2.THRESH_BINARY + cv2.THRESH_OTSU
-    ret,frame = cv2.threshold(frame, 0, 255, otsu)
-    return frame
-
 def writeLetter(letter):
     font = cv2.FONT_HERSHEY_SIMPLEX
     (text_width, text_height) = cv2.getTextSize(letter, font, 6, thickness=1)[0]
@@ -20,6 +13,24 @@ def writeLetter(letter):
     cv2.rectangle(frame, box_coords[0], box_coords[1], (0,0,0), cv2.FILLED)
     cv2.putText(frame, letter, (text_offset_x, text_offset_y), font, 6, (255,255,255), 3)
     return
+
+def treatImage(frame):
+    frame = cv2.resize(frame, (480, 640))
+
+    # aplica filtro gaussiano e coloca imagem preto e branco
+    img_grey = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+    img_grey = cv2.GaussianBlur(img_grey, (5,5), 0)
+
+    # aplica otsu para binarizar
+    ret, img_grey = cv2.threshold(img_grey, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+
+    #tira o contorno da imagem
+    contours, heirarchy = cv2.findContours(img_grey, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+    borderImg =  np.zeros((480,640,3), np.uint8)
+    cv2.drawContours(borderImg,contours,-1,(125,125,0),1)
+
+    cv2.imshow("Imagem capturada", borderImg)
+    return frame
 
 cap = cv2.VideoCapture(0)
 framerate = cap.get(cv2.CAP_PROP_FPS)
@@ -34,8 +45,10 @@ while(1):
     if framecount == (framerate * 5):
         framecount = 0
         writeLetter("B")
-        frame = treatImage(frame)
-        cv2.imshow("Imagem capturada", frame)
+
+    treatImage(frame)
+        #cv2.imshow("Imagem capturada", frame)
+
       # TODO
       # mandar o frame para a função de avaliação
 
