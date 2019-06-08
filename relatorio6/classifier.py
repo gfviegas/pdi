@@ -12,7 +12,8 @@ class LetterClassifier(object):
         if (type == 'knn'):
             self.classifier = KNeighborsClassifier()
         elif (type == 'mlp'):
-            self.classifier = MLPClassifier(hidden_layer_sizes=(3, 2, 4))
+            self.classifier = MLPClassifier(hidden_layer_sizes=(3, 10, 10),
+                                            max_iter=1500)
         else:
             self.classifier = svm.SVC(kernel='linear', probability=True)
 

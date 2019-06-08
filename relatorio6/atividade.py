@@ -5,12 +5,15 @@ import pandas as pd
 from mahotas.features import zernike_moments
 from sklearn.decomposition import PCA
 from string import ascii_lowercase
+import seaborn as sns
+import matplotlib.pyplot as plt
 
 from classifier import LetterClassifier
 
 # Iniciando Classificador
-LC = LetterClassifier(type='knn')
+LC = LetterClassifier(type='mlp')
 
+pca = PCA(n_components=0.9)
 
 def writeLetter(letter):
     font = cv2.FONT_HERSHEY_SIMPLEX
@@ -24,7 +27,7 @@ def writeLetter(letter):
     return
 
 def treatImage(frame):
-    frame = cv2.resize(frame, (120, 120))
+    frame = cv2.resize(frame, (480, 480))
 
     # aplica filtro gaussiano e coloca imagem preto e branco
     img_grey = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
@@ -35,8 +38,8 @@ def treatImage(frame):
 
     #tira o contorno da imagem
     contours, heirarchy = cv2.findContours(img_grey, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
-    borderImg = np.zeros((120,120,3), np.uint8)
-    cv2.drawContours(borderImg,contours,-1,(125,125,0),1)
+    borderImg = np.zeros((480, 480, 3), np.uint8)
+    cv2.drawContours(borderImg, contours, -1, (125, 125, 0), 1)
     borderGrey = cv2.cvtColor(borderImg, cv2.COLOR_BGR2GRAY)
 
     # Calculate Moments
@@ -46,9 +49,11 @@ def treatImage(frame):
     huMoments = cv2.HuMoments(moment)
 
     # Calcula momento de Zernike
-    zeMoments = zernike_moments(borderGrey, radius=1)
+    zeMoments = zernike_moments(borderGrey, radius=40)
 
-    # cv2.imshow("Imagem capturada", borderImg)
+    # cv2.imshow("Imagem capturada", img_grey)
+    # cv2.waitKey(0)
+
     return huMoments + zeMoments
 
 def videoLive():
@@ -86,7 +91,6 @@ def videoLive():
 
 def applyPCA(data):
     # print('PRE-PCA: ', len(data), len(data[0]))
-    pca = PCA(n_components=0.9)
     data = pca.fit_transform(data)
     # print('POS-PCA: ', len(data), len(data[0]))
     # print('Variancia: ', pca.explained_variance_)
@@ -108,16 +112,10 @@ def trainClassifier():
             data = treatImage(img).ravel().tolist()
             data.insert(0, letter)
             dfData.append(data)
-        # for entry in data:
-        #     nComp = max(nComp, len(entry))
-        #
-        #     # Insere no dataframe
-        #     entry.insert(0, letter)
-        #     dfData.append(entry)
 
-    # Aplica a PCA
+    # Treina a pca a PCA
     dataWithoutLetter = list(map(lambda d: d[1:], dfData))
-    data = applyPCA(dataWithoutLetter).tolist()
+    data = pca.fit_transform(dataWithoutLetter).tolist()
     nComp = len(data[0])
 
     columns = ['c{}'.format(i) for i in range(nComp)]
@@ -129,39 +127,39 @@ def trainClassifier():
     df = pd.DataFrame(data, columns=columns).fillna(0)
 
     print(df.info())
-    print(df.head(100))
+    print(df.head(2))
 
     # Dados pra treinamento
     x = df.drop('letter', axis=1)
     y = df['letter']
 
+    # sns.set(style='ticks')
+    # sns.pairplot(df, hue='letter')
+
     # Treina o classificador
     LC.train(x, y, nComp)
 
-def predictLetter(frameList):
-    frameData = list()
-    for frame in frameList:
-        data = treatImage(frame).ravel()
-        frameData.append(data)
-
-
-    pca = PCA(LC.n)
-    data = pca.fit_transform(frameData).tolist()
+def predictLetter(img):
+    l = list()
+    data = treatImage(img).ravel().tolist()
+    l.append(data)
+    data = pca.transform(l).tolist()
 
     columns = ['c{}'.format(i) for i in range(LC.n)]
     df = pd.DataFrame(data, columns=columns).fillna(0)
 
-    predictions = LC.predict(df)
-    print(predictions)
+    prediction = LC.predict(df)
+    print(prediction[0], end=', ')
 
-    # data = treatImage(img).ravel().reshape(-1, 1)
-    # print(data[:1])
-    # return LC.predict(data[:1])
+    return prediction[0]
 
 if __name__ == '__main__':
     trainClassifier()
 
-    print(predictLetter([cv2.imread('alphabet/g{}.jpg'.format(i)) for i in range(6) ]))
-    print(predictLetter([cv2.imread('alphabet/a{}.jpg'.format(i)) for i in range(6) ]))
-    print(predictLetter([cv2.imread('alphabet/w{}.jpg'.format(i)) for i in range(6) ]))
+    for letter in ascii_lowercase:
+        print('**** {}'.format(letter))
+        [ predictLetter(cv2.imread('alphabet/{}{}.jpg'.format(letter, i))) for i in range(10) ]
+        print()
+
+    # print(predictLetter([cv2.imread('alphabet/d{}.jpg'.format(i)) for i in range(6) ]))
     # videoLive()
