@@ -32,10 +32,10 @@ def treatImage(frame):
     contours, heirarchy = cv2.findContours(img_grey, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
     borderImg = np.zeros((480,640,3), np.uint8)
     cv2.drawContours(borderImg,contours,-1,(125,125,0),1)
-    momentGrey = cv2.cvtColor(borderImg, cv2.COLOR_BGR2GRAY)
+    borderGrey = cv2.cvtColor(borderImg, cv2.COLOR_BGR2GRAY)
 
     # Calculate Moments
-    moment = cv2.moments(borderImg)
+    moment = cv2.moments(borderGrey)
 
     # Calculate Hu Moments
     huMoments = cv2.HuMoments(moment)
