@@ -95,35 +95,38 @@ def applyPCA(data):
     return data
 
 def trainClassifier():
-    # df = pd.DataFrame([[]], columns=['n sei', 'nsei', 'letter'])
     dfData = list()
     nComp = 0
 
     for letter in ascii_lowercase:
-        letterData = []
-
         for i in range(10):
             # Abre a imagem
             imgPath = 'alphabet/{}{}.jpg'.format(letter, i)
             img = cv2.imread(imgPath)
 
             # Extrai os dados do momento
-            data = treatImage(img).ravel()
-            letterData.append(data)
+            data = treatImage(img).ravel().tolist()
+            data.insert(0, letter)
+            dfData.append(data)
+        # for entry in data:
+        #     nComp = max(nComp, len(entry))
+        #
+        #     # Insere no dataframe
+        #     entry.insert(0, letter)
+        #     dfData.append(entry)
 
-        # Aplica a PCA
-        data = applyPCA(letterData).tolist()
-        for entry in data:
-            nComp = max(nComp, len(entry))
-
-            # Insere no dataframe
-            entry.insert(0, letter)
-            dfData.append(entry)
-
+    # Aplica a PCA
+    dataWithoutLetter = list(map(lambda d: d[1:], dfData))
+    data = applyPCA(dataWithoutLetter).tolist()
+    nComp = len(data[0])
 
     columns = ['c{}'.format(i) for i in range(nComp)]
     columns.insert(0, 'letter')
-    df = pd.DataFrame(dfData, columns=columns).fillna(0)
+
+    for i in range(len(dfData)):
+        data[i].insert(0, dfData[i][0])
+
+    df = pd.DataFrame(data, columns=columns).fillna(0)
 
     print(df.info())
     print(df.head(100))
@@ -147,8 +150,6 @@ def predictLetter(frameList):
 
     columns = ['c{}'.format(i) for i in range(LC.n)]
     df = pd.DataFrame(data, columns=columns).fillna(0)
-
-    print(df.info())
 
     predictions = LC.predict(df)
     print(predictions)
