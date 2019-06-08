@@ -2,10 +2,15 @@
 import cv2
 import numpy as np
 import pandas as pd
+from mahotas.features import zernike_moments
 from sklearn.decomposition import PCA
 from string import ascii_lowercase
 
 from classifier import LetterClassifier
+
+# Iniciando Classificador
+LC = LetterClassifier(type='knn')
+
 
 def writeLetter(letter):
     font = cv2.FONT_HERSHEY_SIMPLEX
@@ -19,7 +24,7 @@ def writeLetter(letter):
     return
 
 def treatImage(frame):
-    frame = cv2.resize(frame, (480, 640))
+    frame = cv2.resize(frame, (120, 120))
 
     # aplica filtro gaussiano e coloca imagem preto e branco
     img_grey = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
@@ -30,7 +35,7 @@ def treatImage(frame):
 
     #tira o contorno da imagem
     contours, heirarchy = cv2.findContours(img_grey, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
-    borderImg = np.zeros((480,640,3), np.uint8)
+    borderImg = np.zeros((120,120,3), np.uint8)
     cv2.drawContours(borderImg,contours,-1,(125,125,0),1)
     borderGrey = cv2.cvtColor(borderImg, cv2.COLOR_BGR2GRAY)
 
@@ -39,8 +44,12 @@ def treatImage(frame):
 
     # Calculate Hu Moments
     huMoments = cv2.HuMoments(moment)
-    cv2.imshow("Imagem capturada", borderImg)
-    return huMoments
+
+    # Calcula momento de Zernike
+    zeMoments = zernike_moments(borderGrey, radius=1)
+
+    # cv2.imshow("Imagem capturada", borderImg)
+    return huMoments + zeMoments
 
 def videoLive():
     cap = cv2.VideoCapture(0)
@@ -74,9 +83,6 @@ def videoLive():
 
     cap.release()
     cv2.destroyAllWindows()
-
-# Iniciando Classificador
-LC = LetterClassifier(type='mlp')
 
 def applyPCA(data):
     # print('PRE-PCA: ', len(data), len(data[0]))
@@ -117,10 +123,10 @@ def trainClassifier():
 
     columns = ['c{}'.format(i) for i in range(nComp)]
     columns.insert(0, 'letter')
-    df = pd.DataFrame(dfData, columns=columns)
+    df = pd.DataFrame(dfData, columns=columns).fillna(0)
 
     print(df.info())
-    print(df.head(2))
+    print(df.head(100))
 
     # Dados pra treinamento
     x = df.drop('letter', axis=1)
@@ -130,19 +136,19 @@ def trainClassifier():
     LC.train(x, y, nComp)
 
 def predictLetter(frameList):
-    # data = list()
-    # data.append(treatImage(img).ravel().tolist())
-    # pca = PCA(LC.n)
-    # data = pca.fit_transform(data).tolist()
-
     frameData = list()
     for frame in frameList:
         data = treatImage(frame).ravel()
         frameData.append(data)
 
 
-    data = applyPCA(frameData).tolist()
-    df = pd.DataFrame(data)
+    pca = PCA(LC.n)
+    data = pca.fit_transform(frameData).tolist()
+
+    columns = ['c{}'.format(i) for i in range(LC.n)]
+    df = pd.DataFrame(data, columns=columns).fillna(0)
+
+    print(df.info())
 
     predictions = LC.predict(df)
     print(predictions)
