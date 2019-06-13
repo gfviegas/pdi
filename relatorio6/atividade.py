@@ -15,7 +15,7 @@ LC = LetterClassifier(type='svm')
 
 pca = PCA(n_components=0.9)
 
-def writeLetter(letter):
+def writeLetter(letter, frame):
     font = cv2.FONT_HERSHEY_SIMPLEX
     (text_width, text_height) = cv2.getTextSize(letter, font, 6, thickness=1)[0]
     text_offset_x = 10
@@ -68,20 +68,13 @@ def videoLive():
         frame = cv2.flip(frame, 1)
         framecount += 1
 
-        if (len(frameData) < 5):
-            frameData.append(frame)
-        else:
-            letter = predictLetter(frameData)
-            writeLetter(letter)
-            frameData = list()
-
         # Check if this is the frame closest to 5 seconds
-        # if framecount == (framerate * 5):
-        #     framecount = 0
-        #     letter = predictLetter(frame)
-        #     writeLetter(letter)
+        if framecount == (framerate * 5):
+             framecount = 0
+             letter = predictLetter(frame)
+             writeLetter(letter.upper(), frame)
+             cv2.imshow('Imagem capturada', frame)
 
-        cv2.imshow('Imagem capturada', frame)
         k = cv2.waitKey(5) & 0xFF
         if k == 27:
             break
@@ -156,10 +149,10 @@ def predictLetter(img):
 if __name__ == '__main__':
     trainClassifier()
 
-    for letter in ascii_lowercase:
-        print('**** {}'.format(letter))
-        [ predictLetter(cv2.imread('alphabet/{}{}.jpg'.format(letter, i))) for i in range(10) ]
-        print()
+    #for letter in ascii_lowercase:
+        #print('**** {}'.format(letter))
+        #[ predictLetter(cv2.imread('alphabet/{}{}.jpg'.format(letter, i))) for i in range(10) ]
+        #print()
 
     # print(predictLetter([cv2.imread('alphabet/d{}.jpg'.format(i)) for i in range(6) ]))
-    # videoLive()
+    videoLive()
